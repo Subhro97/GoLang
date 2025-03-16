@@ -2,10 +2,58 @@
 
 package main
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+	"os"
+	"strconv"
+)
+
+const fileName = "balance.txt"
+
+func readBalanceFromFile() (float64, error) {
+	balance, err := os.ReadFile(fileName)
+
+	if err != nil {
+		fmt.Println("Unable to read from file.")
+		return 1000, err
+	}
+
+	balanceText := string(balance)
+
+	balanceValue, err := strconv.ParseFloat(balanceText, 64)
+
+	if err != nil {
+		fmt.Println("Unable to convert value to float.")
+
+		return 1000, err
+	}
+
+	return balanceValue, nil
+
+}
+
+func writeBalanceToFile(balance float64) error {
+	balanceText := strconv.FormatFloat(balance, 'f', -1, 64)
+
+	err := os.WriteFile(fileName, []byte(balanceText), 0644) // File Permission Code - Linux Specific
+
+	if err != nil {
+		return errors.New("failed to write to file")
+	}
+
+	return nil
+}
 
 func main() {
-	var investedAmount float64 = 1000
+	investedAmount, err := readBalanceFromFile()
+
+	if err != nil {
+		fmt.Println("Error Occured!")
+		fmt.Println("----------")
+		fmt.Println("")
+		// panic(err)
+	}
 
 	fmt.Println("Welcome to Go Bank!")
 
@@ -33,6 +81,9 @@ func main() {
 			}
 
 			investedAmount += depositAmt
+
+			writeBalanceToFile(investedAmount)
+
 			fmt.Printf("Your current Balance: ₹%0.2f\n", investedAmount)
 		} else if choice == 3 {
 			var withdrawAmt float64
@@ -50,6 +101,8 @@ func main() {
 			}
 
 			investedAmount -= withdrawAmt
+
+			writeBalanceToFile(investedAmount)
 
 			fmt.Printf("Your current Balance: ₹%0.2f\n", investedAmount)
 		} else {
