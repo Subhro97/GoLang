@@ -3,50 +3,16 @@
 package main
 
 import (
-	"errors"
 	"fmt"
-	"os"
-	"strconv"
+
+	"github.com/Pallinder/go-randomdata"
+	"github.com/go-bank/fileops"
 )
 
 const fileName = "balance.txt"
 
-func readBalanceFromFile() (float64, error) {
-	balance, err := os.ReadFile(fileName)
-
-	if err != nil {
-		fmt.Println("Unable to read from file.")
-		return 1000, err
-	}
-
-	balanceText := string(balance)
-
-	balanceValue, err := strconv.ParseFloat(balanceText, 64)
-
-	if err != nil {
-		fmt.Println("Unable to convert value to float.")
-
-		return 1000, err
-	}
-
-	return balanceValue, nil
-
-}
-
-func writeBalanceToFile(balance float64) error {
-	balanceText := strconv.FormatFloat(balance, 'f', -1, 64)
-
-	err := os.WriteFile(fileName, []byte(balanceText), 0644) // File Permission Code - Linux Specific
-
-	if err != nil {
-		return errors.New("failed to write to file")
-	}
-
-	return nil
-}
-
 func main() {
-	investedAmount, err := readBalanceFromFile()
+	investedAmount, err := fileops.ReadFloatFromFile(fileName)
 
 	if err != nil {
 		fmt.Println("Error Occured!")
@@ -59,6 +25,7 @@ func main() {
 
 	for {
 		fmt.Println("What do you want to do today?")
+		fmt.Printf("Reach us 24x7 at %v\n", randomdata.PhoneNumber())
 		fmt.Println("1. Check balance")
 		fmt.Println("2. Deposit Money")
 		fmt.Println("3. Withdraw Money")
@@ -82,7 +49,7 @@ func main() {
 
 			investedAmount += depositAmt
 
-			writeBalanceToFile(investedAmount)
+			fileops.WriteFloatToFile(fileName, investedAmount)
 
 			fmt.Printf("Your current Balance: ₹%0.2f\n", investedAmount)
 		} else if choice == 3 {
@@ -102,7 +69,7 @@ func main() {
 
 			investedAmount -= withdrawAmt
 
-			writeBalanceToFile(investedAmount)
+			fileops.WriteFloatToFile(fileName, investedAmount)
 
 			fmt.Printf("Your current Balance: ₹%0.2f\n", investedAmount)
 		} else {
