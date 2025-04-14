@@ -2,14 +2,14 @@ package main
 
 import (
 	"fmt"
-	"time"
+
+	"github.com/structs/user"
 )
 
-type user struct {
-	firstName string
-	lastName  string
-	birthDate string
-	createdAt time.Time
+type str string
+
+func (s str) log() {
+	fmt.Println(s)
 }
 
 func main() {
@@ -17,25 +17,24 @@ func main() {
 	userLastName := getUserData("Enter your Last Name: ")
 	userBirthDate := getUserData("Enter your BirthDate: ")
 
-	var userData user
+	userData, err := user.New(userFirstName, userLastName, userBirthDate)
 
-	userData = user{
-		firstName: userFirstName,
-		lastName:  userLastName,
-		birthDate: userBirthDate,
-		createdAt: time.Now(),
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
+	userData.OutputUserDetails()
+	userData.ClearUserDetails()
+	userData.OutputUserDetails()
 
-	outputUserDetails(userData)
-}
+	const name str = "Subhro"
 
-func outputUserDetails(u user) {
-	fmt.Println(u.firstName, u.lastName, u.birthDate)
+	name.log()
 }
 
 func getUserData(outputStr string) string {
 	fmt.Print(outputStr)
 	var value string
-	fmt.Scan(&value)
+	fmt.Scanln(&value)
 	return value
 }
