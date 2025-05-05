@@ -3,24 +3,37 @@ package main
 import (
 	"fmt"
 
-	"github.com/tax_calculator/cmdmanager"
+	"github.com/tax_calculator/filemanager"
 	"github.com/tax_calculator/prices"
 )
 
 func main() {
 
 	taxRates := []float64{0, 0.07, 0.1, 0.15}
+	doneChans := make([]chan bool, len(taxRates))
+	errorChans := make([]chan error, len(taxRates))
 
-	for _, taxRate := range taxRates {
-		// fm := filemanager.New("prices.txt", fmt.Sprintf("taxed_price_%.0f.json", taxRate*100))
-		cmd := cmdmanager.New()
+	for index := range doneChans {
+		doneChans[index] = make(chan bool)
+		errorChans[index] = make(chan error)
+	}
 
-		taxIncludedPriceJob := prices.NewTaxIncludedPrices(taxRate, cmd)
-		err := taxIncludedPriceJob.Process()
+	for index, taxRate := range taxRates {
+		fm := filemanager.New("prices.txt", fmt.Sprintf("taxed_price_%.0f.json", taxRate*100))
+		// cmd := cmdmanager.New()
 
-		if err != nil {
-			fmt.Println("Unable to Process Job!")
-			return
+		taxIncludedPriceJob := prices.NewTaxIncludedPrices(taxRate, fm)
+		go taxIncludedPriceJob.Process(doneChans[index], errorChans[index])
+
+	}
+
+	for index := range taxRates {
+		select { // Any one of the channels resolves will complete the execution of that routine
+		case err := <-errorChans[index]:
+			fmt.Println("Error Occured!!", err)
+
+		case <-doneChans[index]:
+			fmt.Println("Done!!")
 		}
 	}
 

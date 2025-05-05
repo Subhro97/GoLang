@@ -12,11 +12,11 @@ type TaxIncludedPrices struct {
 	TaxIncludedPrices map[string]string   `json:"tax_included_prices"`
 }
 
-func (job *TaxIncludedPrices) Process() error {
+func (job *TaxIncludedPrices) Process(done chan bool, errorVal chan error) {
 	inputPrices, err := job.IOManager.ReadLines()
 
 	if err != nil {
-		return err
+		errorVal <- err
 	}
 
 	job.TaxIncludedPrices = make(map[string]string, len(inputPrices))
@@ -26,8 +26,9 @@ func (job *TaxIncludedPrices) Process() error {
 		job.TaxIncludedPrices[fmt.Sprintf("%.2f", price)] = taxAddedPrice
 	}
 
-	return job.IOManager.WriteJSON(job)
+	job.IOManager.WriteJSON(job)
 
+	done <- true
 }
 
 func NewTaxIncludedPrices(taxRate float64, iom iomanager.IOManager) *TaxIncludedPrices {
